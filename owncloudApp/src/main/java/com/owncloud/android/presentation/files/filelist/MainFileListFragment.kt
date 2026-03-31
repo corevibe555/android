@@ -60,6 +60,7 @@ import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import coil.load
 import com.bumptech.glide.Glide
 import com.getbase.floatingactionbutton.AddFloatingActionButton
+import com.getbase.floatingactionbutton.FloatingActionsMenu
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.snackbar.Snackbar
@@ -326,11 +327,13 @@ class MainFileListFragment : Fragment(),
         isMultiPersonal = capabilityViewModel.checkMultiPersonal()
         initViews()
         subscribeToViewModels()
+        updateFabExpandDirection(resources.configuration)
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
         updateConfigDependentSizes()
+        updateFabExpandDirection(newConfig)
     }
 
     private fun updateConfigDependentSizes() {
@@ -347,6 +350,21 @@ class MainFileListFragment : Fragment(),
             height = iconSize
         }
         binding.emptyDataParent.listEmptyDatasetIcon.requestLayout()
+    }
+
+    private fun updateFabExpandDirection(config: Configuration) {
+        val direction = if (config.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            FloatingActionsMenu.EXPAND_LEFT
+        } else {
+            FloatingActionsMenu.EXPAND_UP
+        }
+        try {
+            val field = FloatingActionsMenu::class.java.getDeclaredField("mExpandDirection")
+            field.isAccessible = true
+            field.setInt(binding.fabMain, direction)
+        } catch (_: Exception) {
+            // Library internals changed — fall back to default vertical expand
+        }
     }
 
     override fun onResume() {
